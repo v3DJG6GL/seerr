@@ -1,47 +1,61 @@
+import Alert from '@app/components/Common/Alert';
 import LoadingSpinner from '@app/components/Common/LoadingSpinner';
 import Modal from '@app/components/Common/Modal';
+import useSettings from '@app/hooks/useSettings';
+import { useUser } from '@app/hooks/useUser';
 import defineMessages from '@app/utils/defineMessages';
 import { Transition } from '@headlessui/react';
-import { ApiErrorCode } from '@server/constants/error';
+import { MediaServerType } from '@server/constants/server';
 import axios from 'axios';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 
-const messages = defineMessages('components.Login.JellyfinQuickConnectModal', {
-  title: 'Quick Connect',
-  subtitle: 'Sign in with Quick Connect',
-  instructions: 'Enter this code in your {mediaServerName} app',
-  waitingForAuth: 'Waiting for authorization...',
-  expired: 'Code Expired',
-  expiredMessage: 'This Quick Connect code has expired. Please try again.',
-  error: 'Error',
-  errorMessage: 'Failed to initiate Quick Connect. Please try again.',
-  authorizationFailed: 'Quick Connect authorization failed.',
-  cancel: 'Cancel',
-  tryAgain: 'Try Again',
-});
+const messages = defineMessages(
+  'components.UserProfile.UserSettings.LinkJellyfinQuickConnectModal',
+  {
+    title: 'Link {mediaServerName} Account',
+    subtitle: 'Quick Connect',
+    instructions: 'Enter this code in your {mediaServerName} app',
+    waitingForAuth: 'Waiting for authorization...',
+    expired: 'Code Expired',
+    expiredMessage: 'This Quick Connect code has expired. Please try again.',
+    error: 'Error',
+    errorMessage: 'Failed to initiate Quick Connect. Please try again.',
+    usePassword: 'Use Password Instead',
+    tryAgain: 'Try Again',
+    errorExists: 'This account is already linked',
+  }
+);
 
-interface JellyfinQuickConnectModalProps {
+interface LinkJellyfinQuickConnectModalProps {
+  show: boolean;
   onClose: () => void;
-  onAuthenticated: () => void;
-  onError: (error: string) => void;
-  mediaServerName: string;
+  onSave: () => void;
+  onSwitchToPassword: () => void;
 }
 
-const JellyfinQuickConnectModal = ({
+const LinkJellyfinQuickConnectModal = ({
+  show,
   onClose,
-  onAuthenticated,
-  onError,
-  mediaServerName,
-}: JellyfinQuickConnectModalProps) => {
+  onSave,
+  onSwitchToPassword,
+}: LinkJellyfinQuickConnectModalProps) => {
   const intl = useIntl();
+  const settings = useSettings();
+  const { user } = useUser();
   const [code, setCode] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [isExpired, setIsExpired] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const pollingInterval = useRef<NodeJS.Timeout>();
   const isMounted = useRef(true);
   const hasInitiated = useRef(false);
+
+  const mediaServerName =
+    settings.currentSettings.mediaServerType === MediaServerType.JELLYFIN
+      ? 'Jellyfin'
+      : 'Emby';
 
   useEffect(() => {
     isMounted.current = true;
@@ -53,32 +67,33 @@ const JellyfinQuickConnectModal = ({
     };
   }, []);
 
-  const authenticateWithQuickConnect = useCallback(
+  const linkWithQuickConnect = useCallback(
     async (secret: string) => {
       try {
-        await axios.post('/api/v1/auth/jellyfin/quickconnect/authenticate', {
-          secret,
-        });
+        await axios.post(
+          `/api/v1/user/${user?.id}/settings/linked-accounts/jellyfin/quickconnect`,
+          { secret }
+        );
         if (!isMounted.current) return;
 
-        onAuthenticated();
+        onSave();
         onClose();
       } catch (error) {
         if (!isMounted.current) return;
 
         let errorMessage = intl.formatMessage(messages.errorMessage);
-
-        switch (error?.response?.data?.message) {
-          case ApiErrorCode.InvalidCredentials:
-            errorMessage = intl.formatMessage(messages.authorizationFailed);
-            break;
+        if (error?.response?.status === 422) {
+          errorMessage = intl.formatMessage(messages.errorExists);
         }
 
-        onError(errorMessage);
-        onClose();
+        setError(errorMessage);
+        setHasError(true);
+        if (pollingInterval.current) {
+          clearInterval(pollingInterval.current);
+        }
       }
     },
-    [onAuthenticated, onClose, onError, intl]
+    [user, onSave, onClose, intl]
   );
 
   const startPolling = useCallback(
@@ -86,7 +101,7 @@ const JellyfinQuickConnectModal = ({
       pollingInterval.current = setInterval(async () => {
         try {
           const response = await axios.get(
-            '/api/v1/auth/jellyfin/quickconnect/check',
+            `/api/v1/auth/jellyfin/quickconnect/check`,
             {
               params: { secret },
             }
@@ -103,8 +118,7 @@ const JellyfinQuickConnectModal = ({
             if (pollingInterval.current) {
               clearInterval(pollingInterval.current);
             }
-
-            await authenticateWithQuickConnect(secret);
+            await linkWithQuickConnect(secret);
           }
         } catch (error) {
           if (!isMounted.current) return;
@@ -118,7 +132,7 @@ const JellyfinQuickConnectModal = ({
         }
       }, 2000);
     },
-    [authenticateWithQuickConnect]
+    [linkWithQuickConnect]
   );
 
   const initiateQuickConnect = useCallback(async () => {
@@ -129,43 +143,46 @@ const JellyfinQuickConnectModal = ({
     setIsLoading(true);
     setHasError(false);
     setIsExpired(false);
+    setError(null);
 
     try {
       const response = await axios.post(
-        '/api/v1/auth/jellyfin/quickconnect/initiate'
+        `/api/v1/auth/jellyfin/quickconnect/initiate`
       );
       if (!isMounted.current) return;
 
       setCode(response.data.code);
       setIsLoading(false);
-
       startPolling(response.data.secret);
     } catch (error) {
       if (!isMounted.current) return;
 
       setHasError(true);
       setIsLoading(false);
-      onError(intl.formatMessage(messages.errorMessage));
+      setError(intl.formatMessage(messages.errorMessage));
     }
-  }, [startPolling, onError, intl]);
+  }, [startPolling, intl]);
 
   useEffect(() => {
-    if (!hasInitiated.current) {
+    if (show && !hasInitiated.current) {
       hasInitiated.current = true;
       initiateQuickConnect();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [show, initiateQuickConnect]);
 
-  const handleTryAgain = () => {
-    initiateQuickConnect();
+  const handleSwitchToPassword = () => {
+    if (pollingInterval.current) {
+      clearInterval(pollingInterval.current);
+    }
+    onClose();
+    onSwitchToPassword();
   };
 
   return (
     <Transition
       as="div"
       appear
-      show
+      show={show}
       enter="transition-opacity ease-in-out duration-300"
       enterFrom="opacity-0"
       enterTo="opacity-100"
@@ -174,17 +191,24 @@ const JellyfinQuickConnectModal = ({
       leaveTo="opacity-0"
     >
       <Modal
-        onCancel={onClose}
-        title={intl.formatMessage(messages.title)}
+        onCancel={handleSwitchToPassword}
+        title={intl.formatMessage(messages.title, { mediaServerName })}
         subTitle={intl.formatMessage(messages.subtitle)}
-        cancelText={intl.formatMessage(messages.cancel)}
+        cancelText={intl.formatMessage(messages.usePassword)}
         {...(hasError || isExpired
           ? {
               okText: intl.formatMessage(messages.tryAgain),
-              onOk: handleTryAgain,
+              onOk: initiateQuickConnect,
             }
           : {})}
+        dialogClass="sm:max-w-lg"
       >
+        {error && (
+          <div className="mb-4">
+            <Alert type="error">{error}</Alert>
+          </div>
+        )}
+
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-8">
             <LoadingSpinner />
@@ -194,9 +218,7 @@ const JellyfinQuickConnectModal = ({
         {!isLoading && !hasError && !isExpired && (
           <div className="flex flex-col items-center space-y-4">
             <p className="text-center text-gray-300">
-              {intl.formatMessage(messages.instructions, {
-                mediaServerName,
-              })}
+              {intl.formatMessage(messages.instructions, { mediaServerName })}
             </p>
 
             <div className="flex flex-col items-center space-y-2">
@@ -222,9 +244,7 @@ const JellyfinQuickConnectModal = ({
               <h3 className="text-lg font-semibold text-red-500">
                 {intl.formatMessage(messages.error)}
               </h3>
-              <p className="mt-2 text-gray-300">
-                {intl.formatMessage(messages.errorMessage)}
-              </p>
+              <p className="mt-2 text-gray-300">{error}</p>
             </div>
           </div>
         )}
@@ -246,4 +266,4 @@ const JellyfinQuickConnectModal = ({
   );
 };
 
-export default JellyfinQuickConnectModal;
+export default LinkJellyfinQuickConnectModal;
