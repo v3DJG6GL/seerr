@@ -313,8 +313,11 @@ export class MediaRequestSubscriber
                 entity.requestedBy.id + '-' + entity.requestedBy.displayName,
             });
             userTag = await radarr.createTag({
-              label:
-                entity.requestedBy.id + '-' + entity.requestedBy.displayName,
+              label: (
+                entity.requestedBy.id +
+                '-' +
+                entity.requestedBy.displayName
+              ).replace(/\s+/g, '-'),
             });
           }
           if (userTag.id) {
@@ -634,8 +637,11 @@ export class MediaRequestSubscriber
                 entity.requestedBy.id + '-' + entity.requestedBy.displayName,
             });
             userTag = await sonarr.createTag({
-              label:
-                entity.requestedBy.id + '-' + entity.requestedBy.displayName,
+              label: (
+                entity.requestedBy.id +
+                '-' +
+                entity.requestedBy.displayName
+              ).replace(/\s+/g, '-'),
             });
           }
           if (userTag.id) {
