@@ -30,6 +30,10 @@ const migrationArrTags = async (settings: any): Promise<AllSettings> => {
       });
       const radarrTags = await radarr.getTags();
       for (const user of users) {
+        if (!user.username) {
+          continue;
+        }
+
         const userTag = radarrTags.find(
           (v) =>
             v.label.startsWith(user.id + ' - ') ||
@@ -72,6 +76,10 @@ const migrationArrTags = async (settings: any): Promise<AllSettings> => {
       });
       const sonarrTags = await sonarr.getTags();
       for (const user of users) {
+        if (!user.username) {
+          continue;
+        }
+
         const userTag = sonarrTags.find(
           (v) =>
             v.label.startsWith(user.id + ' - ') ||
