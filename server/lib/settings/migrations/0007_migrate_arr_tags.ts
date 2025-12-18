@@ -14,7 +14,7 @@ const migrationArrTags = async (settings: any): Promise<AllSettings> => {
 
   const userRepository = getRepository(User);
   const users = await userRepository.find({
-    select: ['id', 'displayName'],
+    select: ['id', 'username'],
   });
 
   let errorOccurred = false;
@@ -43,7 +43,7 @@ const migrationArrTags = async (settings: any): Promise<AllSettings> => {
           label:
             user.id +
             '-' +
-            user.displayName
+            user.username
               .normalize('NFD')
               .replace(/[\u0300-\u036f]/g, '')
               .replace(/\s+/g, '-')
@@ -85,7 +85,7 @@ const migrationArrTags = async (settings: any): Promise<AllSettings> => {
           label:
             user.id +
             '-' +
-            user.displayName
+            user.username
               .normalize('NFD')
               .replace(/[\u0300-\u036f]/g, '')
               .replace(/\s+/g, '-')
