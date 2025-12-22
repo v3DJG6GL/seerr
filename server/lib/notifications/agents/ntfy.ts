@@ -64,10 +64,11 @@ class NtfyAgent
         message += `\n**- Request Status:** ${status}`;
       }
     } else if (payload.comment) {
-      message += `\n**- Comment from:** ${payload.comment.user.displayName}:\n${payload.comment.message}`;
+      message = `**- Comment:**\n${payload.comment.message}`;
+      message += `\n\n**- Comment from:** ${payload.comment.user.displayName}`;
     } else if (payload.issue) {
       if (message) {
-        message = `**Comment**\n${message}`;
+        message = `**- Comment:**\n${message}`;
       }
       message += `\n\n**- Reported By:** ${payload.issue.createdBy.displayName}`;
       message += `\n**- Issue Type:** ${IssueTypeName[payload.issue.issueType]}`;
@@ -92,6 +93,7 @@ class NtfyAgent
       priority,
       title,
       message,
+      markdown: true,
       attach,
       click,
     };
