@@ -17,8 +17,8 @@ on:
       - 'docs/**'
       - 'gen-docs/**'
       - '.github/workflows/docs-link-check.yml'
-  schedule:
-    - cron: '50 7 * * 5'
+#   schedule:
+#     - cron: '50 7 * * 5'
   workflow_dispatch:
 
 permissions:
