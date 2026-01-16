@@ -8,8 +8,8 @@ on:
       - Seerr Release
     types:
       - completed
-  schedule:
-    - cron: '50 7 * * 5'
+#   schedule:
+#     - cron: '50 7 * * 5'
   workflow_dispatch:
 
 permissions:
