@@ -13,9 +13,7 @@ const migrationArrTags = async (settings: any): Promise<AllSettings> => {
   }
 
   const userRepository = getRepository(User);
-  const users = await userRepository.find({
-    select: ['id', 'username'],
-  });
+  const users = await userRepository.find();
 
   let errorOccurred = false;
 
@@ -30,14 +28,10 @@ const migrationArrTags = async (settings: any): Promise<AllSettings> => {
       });
       const radarrTags = await radarr.getTags();
       for (const user of users) {
-        if (!user.username) {
-          continue;
-        }
-
         const userTag = radarrTags.find(
           (v) =>
-            v.label.startsWith(user.id + ' - ') ||
-            v.label.startsWith(user.id + '-')
+          v.label.startsWith(user.id + ' - ') ||
+          v.label.startsWith(user.id + '-')
         );
         if (!userTag) {
           continue;
@@ -45,15 +39,15 @@ const migrationArrTags = async (settings: any): Promise<AllSettings> => {
         await radarr.renameTag({
           id: userTag.id,
           label:
-            user.id +
-            '-' +
-            user.username
-              .normalize('NFD')
-              .replace(/[\u0300-\u036f]/g, '')
-              .replace(/\s+/g, '-')
-              .replace(/[^a-z0-9-]/gi, '')
-              .replace(/-+/g, '-')
-              .replace(/^-|-$/g, ''),
+          user.id +
+          '-' +
+        user.displayName
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/gi, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, ''),
         });
       }
     } catch (error) {
@@ -76,14 +70,10 @@ const migrationArrTags = async (settings: any): Promise<AllSettings> => {
       });
       const sonarrTags = await sonarr.getTags();
       for (const user of users) {
-        if (!user.username) {
-          continue;
-        }
-
         const userTag = sonarrTags.find(
           (v) =>
-            v.label.startsWith(user.id + ' - ') ||
-            v.label.startsWith(user.id + '-')
+          v.label.startsWith(user.id + ' - ') ||
+          v.label.startsWith(user.id + '-')
         );
         if (!userTag) {
           continue;
@@ -91,15 +81,15 @@ const migrationArrTags = async (settings: any): Promise<AllSettings> => {
         await sonarr.renameTag({
           id: userTag.id,
           label:
-            user.id +
-            '-' +
-            user.username
-              .normalize('NFD')
-              .replace(/[\u0300-\u036f]/g, '')
-              .replace(/\s+/g, '-')
-              .replace(/[^a-z0-9-]/gi, '')
-              .replace(/-+/g, '-')
-              .replace(/^-|-$/g, ''),
+          user.id +
+          '-' +
+        user.displayName
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/gi, '')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, ''),
         });
       }
     } catch (error) {
