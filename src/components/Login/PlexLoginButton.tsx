@@ -1,6 +1,7 @@
 import PlexIcon from '@app/assets/services/plex.svg';
 import usePlexLogin from '@app/hooks/usePlexLogin';
 import defineMessages from '@app/utils/defineMessages';
+import { Fragment } from 'react';
 import { FormattedMessage } from 'react-intl';
 import LoginButton from './LoginButton';
 
@@ -39,8 +40,12 @@ const PlexLoginButton = ({
         >
           {(chunks) => (
             <>
-              {chunks.map((c) =>
-                typeof c === 'string' ? <span>{c}</span> : c
+              {chunks.map((c, index) =>
+                typeof c === 'string' ? (
+                  <span key={index}>{c}</span>
+                ) : (
+                  <Fragment key={index}>{c}</Fragment>
+                )
               )}
             </>
           )}
