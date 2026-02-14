@@ -151,7 +151,7 @@ export interface MainSettings {
     tv: Quota;
   };
   hideAvailable: boolean;
-  hideBlacklisted: boolean;
+  hideBlocklisted: boolean;
   localLogin: boolean;
   mediaServerLogin: boolean;
   oidcLogin: boolean;
@@ -159,8 +159,8 @@ export interface MainSettings {
   discoverRegion: string;
   streamingRegion: string;
   originalLanguage: string;
-  blacklistedTags: string;
-  blacklistedTagsLimit: number;
+  blocklistedTags: string;
+  blocklistedTagsLimit: number;
   mediaServerType: number;
   partialRequestsEnabled: boolean;
   enableSpecialEpisodes: boolean;
@@ -201,7 +201,7 @@ interface FullPublicSettings extends PublicSettings {
   applicationTitle: string;
   applicationUrl: string;
   hideAvailable: boolean;
-  hideBlacklisted: boolean;
+  hideBlocklisted: boolean;
   localLogin: boolean;
   mediaServerLogin: boolean;
   movie4kEnabled: boolean;
@@ -367,7 +367,7 @@ export type JobId =
   | 'jellyfin-full-scan'
   | 'image-cache-cleanup'
   | 'availability-sync'
-  | 'process-blacklisted-tags';
+  | 'process-blocklisted-tags';
 
 export interface AllSettings {
   clientId: string;
@@ -411,7 +411,7 @@ class Settings {
           tv: {},
         },
         hideAvailable: false,
-        hideBlacklisted: false,
+        hideBlocklisted: false,
         localLogin: true,
         mediaServerLogin: true,
         oidcLogin: false,
@@ -419,8 +419,8 @@ class Settings {
         discoverRegion: '',
         streamingRegion: '',
         originalLanguage: '',
-        blacklistedTags: '',
-        blacklistedTagsLimit: 50,
+        blocklistedTags: '',
+        blocklistedTagsLimit: 50,
         mediaServerType: MediaServerType.NOT_CONFIGURED,
         partialRequestsEnabled: true,
         enableSpecialEpisodes: false,
@@ -596,7 +596,7 @@ class Settings {
         'image-cache-cleanup': {
           schedule: '0 0 5 * * *',
         },
-        'process-blacklisted-tags': {
+        'process-blocklisted-tags': {
           schedule: '0 30 1 */7 * *',
         },
       },
@@ -705,7 +705,7 @@ class Settings {
       applicationTitle: this.data.main.applicationTitle,
       applicationUrl: this.data.main.applicationUrl,
       hideAvailable: this.data.main.hideAvailable,
-      hideBlacklisted: this.data.main.hideBlacklisted,
+      hideBlocklisted: this.data.main.hideBlocklisted,
       localLogin: this.data.main.localLogin,
       mediaServerLogin: this.data.main.mediaServerLogin,
       jellyfinExternalHost: this.data.jellyfin.externalHostname,
