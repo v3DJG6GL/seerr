@@ -169,7 +169,7 @@ const JellyfinLogin = ({ revalidate, serverType }: JellyfinLoginProps) => {
                       {errors.password && touched.password && (
                         <div className="error">{errors.password}</div>
                       )}
-                      <div className="flex-grow"></div>
+                      <div className="flex-grow" />
                       {baseUrl && (
                         <a
                           href={
