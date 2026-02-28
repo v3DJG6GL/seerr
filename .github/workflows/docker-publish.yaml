@@ -10,11 +10,11 @@ on:
 #   schedule:
 #     - cron: '40 5 * * *'
   push:
-    branches: [ "feat-OIDC+Jellyfin-QuickConnect" ]
+    branches: [ "feat-oidc+jellyfin-quickconnect" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
   pull_request:
-    branches: [ "feat-OIDC+Jellyfin-QuickConnect" ]
+    branches: [ "feat-oidc+jellyfin-quickconnect" ]
 
 env:
   # Use docker.io for Docker Hub if empty
