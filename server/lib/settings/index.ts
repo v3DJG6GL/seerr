@@ -112,6 +112,7 @@ export interface SonarrSettings extends DVRSettings {
   activeLanguageProfileId?: number;
   animeTags?: number[];
   enableSeasonFolders: boolean;
+  monitorNewItems: 'all' | 'none';
 }
 
 interface Quota {
