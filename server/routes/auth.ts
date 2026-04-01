@@ -1216,7 +1216,7 @@ authRoutes.post('/reset-password', async (req, res, next) => {
 
   if (user) {
     await user.resetPassword();
-    userRepository.save(user);
+    await userRepository.save(user);
     logger.info('Successfully sent password reset link', {
       label: 'API',
       ip: req.ip,
@@ -1281,7 +1281,7 @@ authRoutes.post('/reset-password/:guid', async (req, res, next) => {
   }
   user.recoveryLinkExpirationDate = null;
   await user.setPassword(req.body.password);
-  userRepository.save(user);
+  await userRepository.save(user);
   logger.info('Successfully reset password', {
     label: 'API',
     ip: req.ip,
