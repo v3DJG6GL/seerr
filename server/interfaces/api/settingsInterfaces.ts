@@ -50,6 +50,7 @@ export interface PublicSettingsResponse {
   newPlexLogin: boolean;
   youtubeUrl: string;
   openIdProviders: PublicOidcProvider[];
+  plexClientIdentifier: string;
 }
 
 export interface CacheItem {
