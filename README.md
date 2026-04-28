@@ -1,3 +1,12 @@
+> [!NOTE]
+> # FORKED REPOSITORY
+> This repository contains 2 additional features not yet released:
+> - [#1505 (feat: support OpenID Connect login)](https://github.com/seerr-team/seerr/pull/1505)
+> - [#2212 (feat: add jellyfin/emby quick connect authentication)](https://github.com/seerr-team/seerr/pull/2212)
+> - Maybe at some point in the future (as a replacement for [#1505](https://github.com/seerr-team/seerr/pull/1505)): [#2715 (feat: initial support for OpenID Connect authentication)](https://github.com/seerr-team/seerr/pull/2715)
+>
+>   I'll continue update  this fork based on `seerr-team/seerr` until these features are merged
+
 <p align="center">
 <img src="./public/logo_full.svg" alt="Seerr" style="margin: 20px 0;">
 </p>
