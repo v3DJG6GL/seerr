@@ -5,7 +5,17 @@
 > - [#2212 (feat: add jellyfin/emby quick connect authentication)](https://github.com/seerr-team/seerr/pull/2212)
 > - Maybe at some point in the future (as a replacement for [#1505](https://github.com/seerr-team/seerr/pull/1505)): [#2715 (feat: initial support for OpenID Connect authentication)](https://github.com/seerr-team/seerr/pull/2715)
 >
->   I'll continue update  this fork based on `seerr-team/seerr` until these features are merged
+>   I'll continue update  this fork based on `seerr-team/seerr` until both features are merged :)
+>
+>   To use this container, you can run:
+>   ```
+>   docker pull ghcr.io/v3djg6gl/seerr:feat-oidc-jellyfin-quickconnect
+>   ```
+>   respectively update your docker-compose.yaml with:
+>   ```
+>   image: ghcr.io/v3djg6gl/seerr:feat-oidc-jellyfin-quickconnect
+>   ```
+>   **As this container is based on the `develop` branch AND contains unreleased features: don't forget to make backups! ;)**
 
 <p align="center">
 <img src="./public/logo_full.svg" alt="Seerr" style="margin: 20px 0;">
