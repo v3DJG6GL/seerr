@@ -57,7 +57,7 @@ export default function OidcLoginButton({
         `/api/v1/auth/oidc/login/${provider.slug}`
       );
       window.location.href = res.data.redirectUrl;
-    } catch (e) {
+    } catch {
       setLoading(false);
       onError?.(
         intl.formatMessage(messages.oidcLoginError, {

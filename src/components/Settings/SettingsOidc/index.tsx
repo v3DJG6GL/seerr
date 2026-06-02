@@ -2,6 +2,7 @@ import Button from '@app/components/Common/Button';
 import ConfirmButton from '@app/components/Common/ConfirmButton';
 import Modal from '@app/components/Common/Modal';
 import EditOidcModal from '@app/components/Settings/EditOidcModal';
+import useToasts from '@app/hooks/useToasts';
 import globalMessages from '@app/i18n/globalMessages';
 import defineMessages from '@app/utils/defineMessages';
 import { Transition } from '@headlessui/react';
@@ -11,7 +12,6 @@ import type { OidcProvider, OidcSettings } from '@server/lib/settings';
 import axios from 'axios';
 import { useState } from 'react';
 import { useIntl } from 'react-intl';
-import { useToasts } from 'react-toast-notifications';
 import useSWR from 'swr';
 
 const messages = defineMessages('components.Settings.SettingsOidc', {
@@ -52,7 +52,7 @@ export default function SettingsOidc(props: SettingsOidcProps) {
         `/api/v1/settings/oidc/${provider.slug}`
       );
       revalidate(response.data);
-    } catch (e) {
+    } catch {
       addToast(intl.formatMessage(messages.deleteError), {
         autoDismiss: true,
         appearance: 'error',

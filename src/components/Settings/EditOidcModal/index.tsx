@@ -1,6 +1,7 @@
 import Accordion from '@app/components/Common/Accordion';
 import Modal from '@app/components/Common/Modal';
 import SensitiveInput from '@app/components/Common/SensitiveInput';
+import useToasts from '@app/hooks/useToasts';
 import globalMessages from '@app/i18n/globalMessages';
 import defineMessages from '@app/utils/defineMessages';
 import { Transition } from '@headlessui/react';
@@ -11,7 +12,6 @@ import axios from 'axios';
 import { Field, Formik, useFormikContext, type FieldAttributes } from 'formik';
 import { useEffect } from 'react';
 import { useIntl } from 'react-intl';
-import { useToasts } from 'react-toast-notifications';
 import { twMerge } from 'tailwind-merge';
 import * as Yup from 'yup';
 
@@ -102,7 +102,7 @@ export default function EditOidcModal(props: EditOidcModalProps) {
       });
 
       props.onOk();
-    } catch (e) {
+    } catch {
       addToast(intl.formatMessage(messages.saveError), {
         appearance: 'error',
         autoDismiss: true,

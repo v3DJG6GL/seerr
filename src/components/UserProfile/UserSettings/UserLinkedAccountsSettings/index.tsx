@@ -171,7 +171,7 @@ const UserLinkedAccountsSettings = () => {
             `/api/v1/auth/oidc/login/${p.slug}`
           );
           window.location.href = res.data.redirectUrl;
-        } catch (e) {
+        } catch {
           setError(intl.formatMessage(messages.errorUnknown));
         }
       },
