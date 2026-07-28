@@ -17,6 +17,7 @@ import { Permission } from '@server/lib/permissions';
 import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
 import { isAuthenticated } from '@server/middleware/auth';
+import { quickConnectSecret } from '@server/routes/auth';
 import { ApiError } from '@server/types/error';
 import { getHostname } from '@server/utils/getHostname';
 import {
@@ -595,16 +596,12 @@ userSettingsRoutes.post<{ secret: string }>(
       return res.status(401).json({ code: ApiErrorCode.Unauthorized });
     }
 
-    const secret = req.body.secret;
-    if (
-      !secret ||
-      typeof secret !== 'string' ||
-      secret.length < 8 ||
-      secret.length > 128 ||
-      !/^[A-Fa-f0-9]+$/.test(secret)
-    ) {
+    const result = quickConnectSecret.safeParse(req.body);
+    if (!result.success) {
       return res.status(400).json({ message: 'Invalid secret format' });
     }
+
+    const { secret } = result.data;
 
     if (
       settings.main.mediaServerType !== MediaServerType.JELLYFIN &&
@@ -633,7 +630,7 @@ userSettingsRoutes.post<{ secret: string }>(
 
       const user = req.user;
       const deviceId = Buffer.from(
-        `BOT_seerr_qc_link_${account.User.Id}`
+        user.id === 1 ? 'BOT_seerr' : `BOT_seerr_${user.username ?? ''}`
       ).toString('base64');
 
       user.userType =
@@ -654,7 +651,8 @@ userSettingsRoutes.post<{ secret: string }>(
         error: e,
       });
 
-      return res.status(500).send();
+      const status = e instanceof ApiError ? e.statusCode : 500;
+      return res.status(status).send();
     }
   }
 );

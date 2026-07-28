@@ -250,6 +250,9 @@ components:
         enableSpecialEpisodes:
           type: boolean
           example: false
+        versionCheck:
+          type: boolean
+          example: false
     OidcProvider:
       type: object
       properties:
@@ -1302,6 +1305,10 @@ components:
           type: number
         rootFolder:
           type: string
+        ignoreQuota:
+          type: boolean
+          example: false
+          description: If true, this request will not count against the user's quota. Requires MANAGE_REQUESTS permission.
       required:
         - id
         - status
@@ -2182,10 +2189,18 @@ paths:
   /status:
     get:
       summary: Get Seerr status
-      description: Returns the current Seerr status in a JSON object.
+      description: Returns the current Seerr status in a JSON object. updateAvailable and commitsBehind are omitted when checkUpdateAvailable is false.
       security: []
       tags:
         - public
+      parameters:
+        - in: query
+          name: checkUpdateAvailable
+          description: If false, updateAvailable and commitsBehind will be omitted from the response. Defaults to the versionCheck setting.
+          required: false
+          example: false
+          schema:
+            type: boolean
       responses:
         '200':
           description: Returned status
@@ -5467,6 +5482,8 @@ paths:
               required:
                 - secret
       responses:
+        '400':
+          description: Invalid Quick Connect secret
         '204':
           description: Account successfully linked
         '401':
@@ -6722,6 +6739,10 @@ paths:
                 userId:
                   type: number
                   nullable: true
+                ignoreQuota:
+                  type: boolean
+                  example: false
+                  description: If true, this request will not count against the user's quota. Requires MANAGE_REQUESTS permission.
               required:
                 - mediaType
                 - mediaId
@@ -7910,6 +7931,9 @@ paths:
                   type: string
                 mediaId:
                   type: number
+                userId:
+                  type: number
+                  nullable: true
       responses:
         '201':
           description: Succesfully created the issue

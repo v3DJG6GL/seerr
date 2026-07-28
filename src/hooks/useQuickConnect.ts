@@ -34,12 +34,11 @@ export const useQuickConnect = ({
 
   useEffect(() => {
     isMounted.current = true;
-    const currentPollingInterval = pollingInterval.current;
 
     return () => {
       isMounted.current = false;
-      if (currentPollingInterval) {
-        clearInterval(currentPollingInterval);
+      if (pollingInterval.current) {
+        clearInterval(pollingInterval.current);
       }
     };
   }, []);
@@ -47,6 +46,10 @@ export const useQuickConnect = ({
   useEffect(() => {
     if (!show) {
       hasInitiated.current = false;
+      if (pollingInterval.current) {
+        clearInterval(pollingInterval.current);
+        pollingInterval.current = undefined;
+      }
     }
   }, [show]);
 
@@ -135,6 +138,7 @@ export const useQuickConnect = ({
     setHasError(false);
     setIsExpired(false);
     setErrorMessage(null);
+    setCode('');
 
     try {
       const response = await axios.post(

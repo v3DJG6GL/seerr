@@ -32,6 +32,7 @@ const defaultSettings: PublicSettingsResponse = {
   newPlexLogin: true,
   youtubeUrl: '',
   openIdProviders: [],
+  versionCheck: true,
   plexClientIdentifier: '',
 };
 
