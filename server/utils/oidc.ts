@@ -6,6 +6,7 @@ import type {
 } from '@server/interfaces/api/oidcInterfaces';
 import type { OidcProvider } from '@server/lib/settings';
 import type { Request } from 'express';
+import { createHash, randomBytes } from 'crypto';
 import * as yup from 'yup';
 
 /** Fetch the issuer configuration from the OpenID Connect Discovery endpoint */
@@ -34,11 +35,24 @@ function getOpenIdCallbackUrl(req: Request, provider: OidcProvider) {
   return callbackUrl.toString();
 }
 
+/** Generate a PKCE code verifier and its S256 challenge */
+export function generatePKCE(): {
+  codeVerifier: string;
+  codeChallenge: string;
+} {
+  const codeVerifier = randomBytes(32).toString('base64url');
+  const codeChallenge = createHash('sha256')
+    .update(codeVerifier)
+    .digest('base64url');
+  return { codeVerifier, codeChallenge };
+}
+
 /** Generate authentication request url */
 export async function getOpenIdRedirectUrl(
   req: Request,
   provider: OidcProvider,
-  state: string
+  state: string,
+  codeChallenge?: string
 ) {
   const wellKnownInfo = await getOpenIdConfiguration(provider.issuerUrl);
   const url = new URL(wellKnownInfo.authorization_endpoint);
@@ -48,6 +62,12 @@ export async function getOpenIdRedirectUrl(
   url.searchParams.set('redirect_uri', getOpenIdCallbackUrl(req, provider));
   url.searchParams.set('scope', provider.scopes ?? 'openid profile email');
   url.searchParams.set('state', state);
+
+  if (codeChallenge) {
+    url.searchParams.set('code_challenge', codeChallenge);
+    url.searchParams.set('code_challenge_method', 'S256');
+  }
+
   return url.toString();
 }
 
@@ -56,7 +76,8 @@ export async function fetchOpenIdTokenData(
   req: Request,
   provider: OidcProvider,
   wellKnownInfo: OidcProviderMetadata,
-  code: string
+  code: string,
+  codeVerifier?: string
 ): Promise<OidcTokenResponse> {
   const formData = new URLSearchParams();
   formData.append('client_secret', provider.clientSecret);
@@ -64,6 +85,10 @@ export async function fetchOpenIdTokenData(
   formData.append('redirect_uri', getOpenIdCallbackUrl(req, provider));
   formData.append('client_id', provider.clientId);
   formData.append('code', code);
+
+  if (codeVerifier) {
+    formData.append('code_verifier', codeVerifier);
+  }
 
   return await fetch(wellKnownInfo.token_endpoint, {
     method: 'POST',

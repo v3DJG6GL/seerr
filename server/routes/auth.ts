@@ -19,6 +19,7 @@ import { getHostname } from '@server/utils/getHostname';
 import {
   createIdTokenSchema,
   fetchOpenIdTokenData,
+  generatePKCE,
   getOpenIdConfiguration,
   getOpenIdRedirectUrl,
   getOpenIdUserInfo,
@@ -853,10 +854,16 @@ authRoutes.get('/oidc/login/:slug', async (req, res, next) => {
   }
 
   const state = randomBytes(32).toString('hex');
+  const pkce = generatePKCE();
 
   let redirectUrl;
   try {
-    redirectUrl = await getOpenIdRedirectUrl(req, provider, state);
+    redirectUrl = await getOpenIdRedirectUrl(
+      req,
+      provider,
+      state,
+      pkce.codeChallenge
+    );
   } catch (err) {
     logger.info('Failed OpenID Connect login attempt', {
       cause: 'Failed to fetch OpenID Connect redirect url',
@@ -870,6 +877,11 @@ authRoutes.get('/oidc/login/:slug', async (req, res, next) => {
   }
 
   res.cookie('oidc-state', state, {
+    maxAge: 60000,
+    httpOnly: true,
+    secure: req.protocol === 'https',
+  });
+  res.cookie('oidc-verifier', pkce.codeVerifier, {
     maxAge: 60000,
     httpOnly: true,
     secure: req.protocol === 'https',
@@ -898,6 +910,7 @@ authRoutes.get('/oidc/callback/:slug', async (req, res, next) => {
     .filter((s) => !!s);
 
   const cookieState = req.cookies['oidc-state'];
+  const codeVerifier: string | undefined = req.cookies['oidc-verifier'];
   const url = new URL(req.url, `${req.protocol}://${req.hostname}`);
   const state = url.searchParams.get('state');
 
@@ -905,6 +918,7 @@ authRoutes.get('/oidc/callback/:slug', async (req, res, next) => {
     // Check that the request belongs to the correct state
     if (state && cookieState === state) {
       res.clearCookie('oidc-state');
+      res.clearCookie('oidc-verifier');
     } else {
       logger.info('Failed OpenID Connect login attempt', {
         cause: 'Invalid state',
@@ -935,7 +949,13 @@ authRoutes.get('/oidc/callback/:slug', async (req, res, next) => {
     const wellKnownInfo = await getOpenIdConfiguration(provider.issuerUrl);
 
     // Fetch the token data
-    const body = await fetchOpenIdTokenData(req, provider, wellKnownInfo, code);
+    const body = await fetchOpenIdTokenData(
+      req,
+      provider,
+      wellKnownInfo,
+      code,
+      codeVerifier
+    );
 
     // Validate that the token response is valid and not manipulated
     if ('error' in body) {
