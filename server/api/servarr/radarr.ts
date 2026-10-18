@@ -81,6 +81,23 @@ class RadarrAPI extends ServarrBase<{ movieId: number }> {
     }
   };
 
+  public getLibraryMoviesByTmdbId = async (
+    tmdbId: number
+  ): Promise<RadarrMovie[]> => {
+    try {
+      const response = await this.axios.get<RadarrMovie[]>('/movie', {
+        params: { tmdbId },
+      });
+
+      return response.data;
+    } catch (e) {
+      throw new Error(
+        `[Radarr] Failed to retrieve movies by TMDB ID: ${e.message}`,
+        { cause: e }
+      );
+    }
+  };
+
   public getMovie = async ({ id }: { id: number }): Promise<RadarrMovie> => {
     try {
       const response = await this.axios.get<RadarrMovie>(`/movie/${id}`);
@@ -167,7 +184,12 @@ class RadarrAPI extends ServarrBase<{ movieId: number }> {
             movie: response.data,
           });
 
-          if (options.searchNow) {
+          if (options.searchNow && response.data.isAvailable) {
+            logger.info('Movie is available, triggering Radarr search.', {
+              label: 'Radarr',
+              movieId: response.data.id,
+              movieTitle: response.data.title,
+            });
             this.searchMovie(response.data.id);
           }
 
@@ -190,10 +212,10 @@ class RadarrAPI extends ServarrBase<{ movieId: number }> {
           hasFile: movie.hasFile,
         });
 
-        // If searchNow is requested and movie doesn't have a file, trigger search
-        if (options.searchNow && !movie.hasFile) {
+        // If searchNow is requested, movie doesn't have a file, and Radarr considers the movie 'available' then trigger search
+        if (options.searchNow && !movie.hasFile && movie.isAvailable) {
           logger.info(
-            'Triggering search for existing monitored movie without file',
+            'Triggering search for existing, available, monitored movie without file',
             {
               label: 'Radarr',
               movieId: movie.id,
