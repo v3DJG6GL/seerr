@@ -111,24 +111,24 @@ export default function EditOidcModal(props: EditOidcModalProps) {
   };
 
   return (
-    <Transition show={props.show}>
-      <Formik
-        initialValues={{
-          slug: props.provider?.slug ?? '',
-          name: props.provider?.name ?? '',
-          issuerUrl: props.provider?.issuerUrl ?? '',
-          clientId: props.provider?.clientId ?? '',
-          clientSecret: props.provider?.clientSecret ?? '',
-          logo: props.provider?.logo,
-          requiredClaims: props.provider?.requiredClaims,
-          scopes: props.provider?.scopes,
-          newUserLogin: props.provider?.newUserLogin,
-        }}
-        validationSchema={oidcSettingsSchema}
-        onSubmit={onSubmit}
-        enableReinitialize
-      >
-        {({ handleSubmit, isValid, errors, touched }) => (
+    <Formik
+      initialValues={{
+        slug: props.provider?.slug ?? '',
+        name: props.provider?.name ?? '',
+        issuerUrl: props.provider?.issuerUrl ?? '',
+        clientId: props.provider?.clientId ?? '',
+        clientSecret: props.provider?.clientSecret ?? '',
+        logo: props.provider?.logo,
+        requiredClaims: props.provider?.requiredClaims,
+        scopes: props.provider?.scopes,
+        newUserLogin: props.provider?.newUserLogin,
+      }}
+      validationSchema={oidcSettingsSchema}
+      onSubmit={onSubmit}
+      enableReinitialize
+    >
+      {({ handleSubmit, isValid, errors, touched }) => (
+        <Transition show={props.show}>
           <Modal
             onCancel={props.onClose}
             cancelButtonProps={{ type: 'button' }}
@@ -359,8 +359,8 @@ export default function EditOidcModal(props: EditOidcModalProps) {
               )}
             </Accordion>
           </Modal>
-        )}
-      </Formik>
-    </Transition>
+        </Transition>
+      )}
+    </Formik>
   );
 }
