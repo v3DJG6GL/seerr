@@ -27,7 +27,7 @@ import {
 import { Router } from 'express';
 import net from 'net';
 import { In, Not, type FindOptionsWhere } from 'typeorm';
-import { canMakePermissionsChange } from '.';
+import { canMakePermissionsChange, canModifyUser } from '.';
 
 const userSettingsRoutes = Router({ mergeParams: true });
 
@@ -91,6 +91,13 @@ userSettingsRoutes.post<
 
     // "Owner" user settings cannot be modified by other users
     if (user.id === 1 && req.user?.id !== 1) {
+      return next({
+        status: 403,
+        message: "You do not have permission to modify this user's settings.",
+      });
+    }
+
+    if (!canModifyUser(user, req.user)) {
       return next({
         status: 403,
         message: "You do not have permission to modify this user's settings.",
@@ -245,7 +252,7 @@ userSettingsRoutes.post<
 
     // If the user has a password, we need to check the currentPassword is correct
     if (
-      user.password &&
+      userWithPassword.password &&
       (!req.body.currentPassword ||
         !(await userWithPassword.passwordMatch(req.body.currentPassword)))
     ) {
@@ -341,6 +348,12 @@ userSettingsRoutes.delete<{ id: string }>(
         return res.status(400).json({
           message:
             'Cannot unlink media server accounts for the primary administrator.',
+        });
+      }
+
+      if (!canModifyUser(user, req.user)) {
+        return res.status(403).json({
+          message: "You do not have permission to modify this user's settings.",
         });
       }
 
@@ -495,6 +508,12 @@ userSettingsRoutes.delete<{ id: string }>(
         return res.status(400).json({
           message:
             'Cannot unlink media server accounts for the primary administrator.',
+        });
+      }
+
+      if (!canModifyUser(user, req.user)) {
+        return res.status(403).json({
+          message: "You do not have permission to modify this user's settings.",
         });
       }
 
@@ -727,6 +746,13 @@ userSettingsRoutes.post<{ id: string }, UserSettingsNotificationsResponse>(
         });
       }
 
+      if (!canModifyUser(user, req.user)) {
+        return next({
+          status: 403,
+          message: "You do not have permission to modify this user's settings.",
+        });
+      }
+
       const discordIds =
         req.body.discordIds?.filter((id: string) => id !== '') ?? [];
 
@@ -825,6 +851,13 @@ userSettingsRoutes.post<
 
       // "Owner" user permissions cannot be modified, and users cannot set their own permissions
       if (user.id === 1 || req.user?.id === user.id) {
+        return next({
+          status: 403,
+          message: 'You do not have permission to modify this user',
+        });
+      }
+
+      if (!canModifyUser(user, req.user)) {
         return next({
           status: 403,
           message: 'You do not have permission to modify this user',
